@@ -10,6 +10,7 @@ import weakref
 class CommonSlots (object):
     objectRef = {}
     slots = {}
+    classOrdDelFun = {}
 
 def addSlot(srcObject = None,signal ="",dstObject = None,slot = lambda : None ):
     srcId = -1
@@ -34,8 +35,18 @@ def delSlot(srcObject = None,signal = None,dstObject = None,slot =  lambda : Non
     dstId = -1
     if srcObject != None:
         srcId = id(srcObject)
+        fun = returnOrdDelFun(srcObject)
+        if fun == None:
+            delattr(type(srcObject),"__del__")
+        else:
+            setattr(type(srcObject),"__del__",fun)
     if dstObject != None:
         dstId = id(dstObject)
+        fun = returnOrdDelFun(dstObject)
+        if fun == None:
+            delattr(type(dstObject),"__del__")
+        else:
+            setattr(type(dstObject),"__del__",fun)
     if not srcId in CommonSlots.objectRef:
         return
     if not dstId in CommonSlots.objectRef:
@@ -65,14 +76,25 @@ def Signal(self,signal):
             f(dstObject())
 
 def returnDelFun(self):
-    fun = lambda :None
+    fun = None
     if self != None and hasattr(type(self),"__del__"):
         fun = getattr(type(self),"__del__")
+    t = type(self)  
+    if not t in CommonSlots.classOrdDelFun:
+        CommonSlots.classOrdDelFun[t] = fun if fun!= None else None
     def delFun(self):
-        res = fun()
+        res = None
+        fun = CommonSlots.classOrdDelFun[t]
+        if fun != None:
+            res = fun()
         ObejctGc(self)
         return res
     return delFun
+def returnOrdDelFun(self):
+    t = type(self)  
+    if not t in CommonSlots.classOrdDelFun:
+        return None
+    return CommonSlots.classOrdDelFun[t]
 
 def ObejctGc(self):
     delId = id(self)
