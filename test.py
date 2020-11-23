@@ -8,6 +8,16 @@ class A (object):
 class B (object):
     def BSpeck(self):
         print("B speck")
+class A1 (object):
+    def askB(self):
+        slots.Signal(self,"askB")
+    def __del__(self):
+        print("A del")
+class B1 (object):
+    def BSpeck(self):
+        print("B speck")
+    def __del__(self):
+        print("B del")
 class Test(object):
     def add(self):
         a = A()
@@ -66,8 +76,27 @@ class Test(object):
         del b1
         del b2
         del b3
+    def testGc2(self):
+        a1 = A1()
+        a2 = A1()
+        a3 = A1()
+        b1 = B1()
+        b2 = B1()
+        b3 = B1()
+        slots.addSlot(a1,"askB",b1,B.BSpeck)
+        slots.addSlot(a2,"askB",b1,B.BSpeck)
+        slots.addSlot(a3,"askB",b1,B.BSpeck)
+        del a1
+        del a2
+        del a3
+        slots.CommonSlots.classOrdDelFun
+        slots.CommonSlots.objectRef
+        slots.CommonSlots.slots
+        del b1
+        del b2
+        del b3
 t = Test()
 #t.add()
 #t.addThenDel()
 #t.addThenGC()
-t.testGc1()
+t.testGc2()

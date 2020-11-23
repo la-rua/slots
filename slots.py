@@ -78,7 +78,7 @@ def returnDelFun(self):
     t = type(self)  
     fun = CommonSlots.classOrdDelFun[t][0]
     if fun != None:
-        res = fun()
+        res = fun(self)
     ObejctGc(self)
     return res
 def returnOrdDelFun(self):
