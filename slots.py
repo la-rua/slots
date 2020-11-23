@@ -126,11 +126,14 @@ def addObject(self):
         CommonSlots.objectRef[addId] = [weakref.ref(self),0]
     CommonSlots.objectRef[addId][1] += 1
     if not type(self) in CommonSlots.classOrdDelFun:
-        CommonSlots.classOrdDelFun[type(self)] = [type(self).__del__,0]
+        fun = None
+        if hasattr(type(self),"__del__"):
+            fun = getattr(type(self),"__del__")
+        CommonSlots.classOrdDelFun[type(self)] = [fun,0]
         setattr(type(self),"__del__",returnDelFun)
-    CommonSlots.classOrdDelFun[type(self)] += 1
+    CommonSlots.classOrdDelFun[type(self)][1] += 1
     CommonSlots.objectRLock.release()
-    
+
 def delObject(self):
     if self == None:
         return 
