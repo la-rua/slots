@@ -16,7 +16,7 @@ class CommonSlots (object):
     slotsRLock = RLock()
     #slots{(id,signal):(id,slot)}
     classOrdDelFun = {}
-    #classOrdDelFun{className:[(__del__),times]}
+    #classOrdDelFun{className:[(__del__),set{id}}]}
 def addSlot(srcObject = None,signal ="",dstObject = None,slot = lambda : None ):
     srcId = -1
     dstId = -1
@@ -129,9 +129,9 @@ def addObject(self):
         fun = None
         if hasattr(type(self),"__del__"):
             fun = getattr(type(self),"__del__")
-        CommonSlots.classOrdDelFun[type(self)] = [fun,0]
+        CommonSlots.classOrdDelFun[type(self)] = [fun,set()]
         setattr(type(self),"__del__",returnDelFun)
-    CommonSlots.classOrdDelFun[type(self)][1] += 1
+    CommonSlots.classOrdDelFun[type(self)][1] |= set([addId,])
     CommonSlots.objectRLock.release()
 
 def delObject(self):
@@ -144,8 +144,8 @@ def delObject(self):
     if CommonSlots.objectRef[delId][1] == 0:
         del CommonSlots.objectRef[delId]
     if type(self) in CommonSlots.classOrdDelFun:
-        CommonSlots.classOrdDelFun[type(self)][1] -= 1
-        if CommonSlots.classOrdDelFun[type(self)][1] == 0:
+        CommonSlots.classOrdDelFun[type(self)][1] -= set([delId,]) 
+        if len(CommonSlots.classOrdDelFun[type(self)][1]) == 0:
             fun = CommonSlots.classOrdDelFun[type(self)][0]
             if fun == None:
                 delattr(type(self),"__del__")
